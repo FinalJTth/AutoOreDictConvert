@@ -1,6 +1,5 @@
 package com.mattdahepic.autooredictconv.common.convert;
 
-import com.mattdahepic.mdecore.common.helpers.ItemHelper;
 import net.minecraft.core.Registry;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
@@ -12,6 +11,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.tags.IReverseTag;
+import net.minecraft.nbt.NbtUtils;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -39,14 +39,20 @@ public class Conversions {
             "resourcefulbees:valid_apiary",
             "ae2:metal_ingots"
     );
+    /* UTIL */
+    private static boolean isSameIgnoreStackSize (ItemStack template, ItemStack compare, boolean compareNBT) {
+        if (template == null && compare == null) return true;
+        if ((template == null || compare == null) && !(template == null && compare == null)) return false; //if either are null but not both
+        return (template.getItem() == compare.getItem()) &&  (!compareNBT || NbtUtils.compareNbt(template.getTag(), compare.getTag(), true));
+    }
     /* HELPERS */
     public static boolean itemHasConversion (ItemStack stack) {
         if (stack.isEmpty()) return false;
-        if (itemConversionMap.containsKey(stack.getItem()) && !ItemHelper.isSameIgnoreStackSize(new ItemStack(itemConversionMap.get(stack.getItem())),stack,false)) return true;
+        if (itemConversionMap.containsKey(stack.getItem()) && !isSameIgnoreStackSize(new ItemStack(itemConversionMap.get(stack.getItem())),stack,false)) return true;
         for (IReverseTag<Item> reverseTag : ForgeRegistries.ITEMS.tags().getReverseTag(stack.getItem()).stream().toList()) {
             for (TagKey<Item> key : reverseTag.getTagKeys().toList()) {
                 ResourceLocation tag = key.location();
-                if (tagConversionMap.containsKey(tag) && !ItemHelper.isSameIgnoreStackSize(new ItemStack(tagConversionMap.get(tag)),stack,false))
+                if (tagConversionMap.containsKey(tag) && !isSameIgnoreStackSize(new ItemStack(tagConversionMap.get(tag)),stack,false))
                     return true;
             }
         }
