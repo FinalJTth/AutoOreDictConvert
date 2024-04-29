@@ -1,4 +1,5 @@
 {
+  "autooredictconv.command.missingarguments": "Missing arguments !",
   "autooredictconv.command.odc._each": "- §6{0}",
   "autooredictconv.command.odc._each_pair": "- §a{0}§r: §6{1}§r",
   "autooredictconv.command.odc._must_be_holding": "You must be holding an item!",
