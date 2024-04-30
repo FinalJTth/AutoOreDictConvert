@@ -4,6 +4,7 @@
   "autooredictconv.command.odc._each_pair": "- §a{0}§r: §6{1}§r",
   "autooredictconv.command.odc._must_be_holding": "You must be holding an item!",
   "autooredictconv.command.odc._no_tag": "The tag {0} does not exist.",
+  "autooredictconv.command.odc._no_item": "The item {0} does not exist.",
   "autooredictconv.command.odc.help.0": "/odc help - shows this message",
   "autooredictconv.command.odc.help.1": "/odc detect - shows the tag names for the currently held item",
   "autooredictconv.command.odc.help.2": "/odc dump - lists out all item tags",
