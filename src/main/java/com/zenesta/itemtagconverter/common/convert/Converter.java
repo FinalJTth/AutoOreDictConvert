@@ -1,4 +1,4 @@
-package com.mattdahepic.autooredictconv.common.convert;
+package com.zenesta.itemtagconverter.common.convert;
 
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
@@ -8,14 +8,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.tags.IReverseTag;
 import net.minecraftforge.registries.tags.ITagManager;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static com.mattdahepic.autooredictconv.common.AutoOreDictConv.ITEMS_TAG_MANAGER;
+import static com.zenesta.itemtagconverter.common.ItemTagConverter.ITEMS_TAG_MANAGER;
 
 public class Converter extends Thread {
     public static final List<String> TAG_BLACKLIST = Arrays.asList("forge:ores", "forge:nuggets", "forge:ingots",
@@ -85,32 +84,4 @@ public class Converter extends Thread {
             }
         }
     }
-
-    /*
-     * Attempts to convert an item and returns the converted item if possible, the
-     * original otherwise
-     *
-     * @param item the item to attempt to convert
-     * @return the converted item or the original if not possible
-     */
-    /*
-    public static ItemStack convert(@Nonnull ItemStack item) {
-        if (itemConversionMap.containsKey(item.getItem())) {
-            return new ItemStack(itemConversionMap.get(item.getItem()), item.getCount());
-        }
-        ITagManager<Item> itemTags = ForgeRegistries.ITEMS.tags();
-        if (itemTags == null)
-            throw new NullPointerException("Getting tag registries return null even after checking");
-        for (IReverseTag<Item> reverseTag : itemTags.getReverseTag(item.getItem()).stream()
-                .toList()) {
-            for (TagKey<Item> key : reverseTag.getTagKeys().toList()) {
-                ResourceLocation tag = key.location();
-                if (tagConversionMap.containsKey(tag)) {
-                    return new ItemStack(tagConversionMap.get(tag), item.getCount());
-                }
-            }
-        }
-        return item;
-    }
-    */
 }

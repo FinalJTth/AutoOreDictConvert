@@ -1,4 +1,4 @@
-package com.mattdahepic.autooredictconv.common.keypress;
+package com.mattdahepic.itemtagconverter.common.keypress;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraftforge.client.event.InputEvent;

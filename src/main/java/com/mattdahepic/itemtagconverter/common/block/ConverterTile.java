@@ -1,7 +1,7 @@
-package com.mattdahepic.autooredictconv.common.block;
+package com.mattdahepic.itemtagconverter.common.block;
 
-import com.mattdahepic.autooredictconv.common.AutoOreDictConv;
-import com.mattdahepic.autooredictconv.common.convert.Converter;
+import com.zenesta.itemtagconverter.common.ItemTagConverter;
+import com.zenesta.itemtagconverter.common.convert.Converter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -21,12 +21,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class ConverterTile extends BlockEntity implements ICapabilityProvider, IItemHandler {
-    private static final int SIZE = 1;    public static final BlockEntityType<?> TYPE = BlockEntityType.Builder
-            .of(ConverterTile::new, AutoOreDictConv.CONVERTER_BLOCK.get()).build(null);
+    private static final int SIZE = 1;
     private final NonNullList<ItemStack> contents = NonNullList.withSize(SIZE, ItemStack.EMPTY);
     public ConverterTile(BlockPos pos, BlockState state) {
         super(TYPE, pos, state);
-    }
+    }    public static final BlockEntityType<?> TYPE = BlockEntityType.Builder
+            .of(ConverterTile::new, ItemTagConverter.CONVERTER_BLOCK.get()).build(null);
 
     @Override
     public <T> @NotNull LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
@@ -95,6 +95,8 @@ public class ConverterTile extends BlockEntity implements ICapabilityProvider, I
     public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
         return slot < contents.size() && Converter.getMatchedConvertedItemStack(stack) != null;
     }
+
+
 
 
 }

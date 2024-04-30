@@ -1,6 +1,6 @@
-package com.mattdahepic.autooredictconv.common.keypress;
+package com.mattdahepic.itemtagconverter.common.keypress;
 
-import com.mattdahepic.autooredictconv.common.convert.Converter;
+import com.zenesta.itemtagconverter.common.convert.Converter;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.network.NetworkEvent;
@@ -16,7 +16,7 @@ public class ConvertPacket {
     public static void handle(ConvertPacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             Converter.convertInPlayer(Objects.requireNonNull(ctx.get().getSender()));
-            ctx.get().getSender().displayClientMessage(Component.translatable("autooredictconv.converting"), true);
+            ctx.get().getSender().displayClientMessage(Component.translatable("itemtagconverter.converting"), true);
         });
         ctx.get().setPacketHandled(true);
     }

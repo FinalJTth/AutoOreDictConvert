@@ -1,4 +1,4 @@
-package com.mattdahepic.autooredictconv.common.block;
+package com.mattdahepic.itemtagconverter.common.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;

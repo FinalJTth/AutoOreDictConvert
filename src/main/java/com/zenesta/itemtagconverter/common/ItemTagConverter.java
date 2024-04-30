@@ -1,14 +1,14 @@
-package com.mattdahepic.autooredictconv.common;
+package com.zenesta.itemtagconverter.common;
 
-import com.mattdahepic.autooredictconv.common.block.ConverterBlock;
-import com.mattdahepic.autooredictconv.common.block.ConverterTile;
-import com.mattdahepic.autooredictconv.common.command.CommandODC;
-import com.mattdahepic.autooredictconv.common.config.ConversionsConfig;
-import com.mattdahepic.autooredictconv.common.config.OptionsConfig;
-import com.mattdahepic.autooredictconv.common.convert.Converter;
-import com.mattdahepic.autooredictconv.common.keypress.KeyHandler;
-import com.mattdahepic.autooredictconv.common.keypress.PacketHandler;
+import com.mattdahepic.itemtagconverter.common.block.ConverterBlock;
+import com.mattdahepic.itemtagconverter.common.block.ConverterTile;
+import com.mattdahepic.itemtagconverter.common.config.ConversionsConfig;
+import com.mattdahepic.itemtagconverter.common.config.OptionsConfig;
+import com.mattdahepic.itemtagconverter.common.keypress.KeyHandler;
+import com.mattdahepic.itemtagconverter.common.keypress.PacketHandler;
 import com.mojang.brigadier.CommandDispatcher;
+import com.zenesta.itemtagconverter.common.command.Command;
+import com.zenesta.itemtagconverter.common.convert.Converter;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -35,15 +35,14 @@ import net.minecraftforge.registries.MissingMappingsEvent.Mapping;
 import net.minecraftforge.registries.tags.ITagManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Objects;
 
-@Mod("autooredictconv")
-public class AutoOreDictConv {
-    public static final String MODID = "autooredictconv";
+@Mod("itemtagconverter")
+public class ItemTagConverter {
+    public static final String MODID = "itemtagconverter";
     public static final Logger LOGGER = LogManager.getLogger();
 
     public static final IForgeRegistry<Item> ITEMS_REGISTRIES = ForgeRegistries.ITEMS;
@@ -59,7 +58,7 @@ public class AutoOreDictConv {
 
     public static final ArrayList<String> PAUSED_PLAYERS = new ArrayList<String>();
 
-    public AutoOreDictConv() {
+    public ItemTagConverter() {
         loadConfig();
     }
 
@@ -68,7 +67,7 @@ public class AutoOreDictConv {
         ConversionsConfig.file = Paths.get(FMLPaths.CONFIGDIR.get().toString(), MODID + "-conversions.cfg").toFile();
     }
 
-    @Mod.EventBusSubscriber(modid = AutoOreDictConv.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    @Mod.EventBusSubscriber(modid = ItemTagConverter.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
         @SubscribeEvent
         public static void clientSetup(final FMLClientSetupEvent event) {
@@ -81,12 +80,12 @@ public class AutoOreDictConv {
         @SubscribeEvent
         public static void buildCreativeTabs(final BuildCreativeModeTabContentsEvent event) {
             if (event.getTabKey() == CreativeModeTabs.OP_BLOCKS) {
-                event.accept(AutoOreDictConv.CONVERTER_ITEM);
+                event.accept(ItemTagConverter.CONVERTER_ITEM);
             }
         }
     }
 
-    @Mod.EventBusSubscriber(modid = AutoOreDictConv.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+    @Mod.EventBusSubscriber(modid = ItemTagConverter.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class CommonModEvents {
         @SubscribeEvent
         public static void commonSetup(final FMLCommonSetupEvent event) {
@@ -98,47 +97,39 @@ public class AutoOreDictConv {
 
         @SubscribeEvent
         public static void register(final RegisterEvent event) {
-            event.register(ForgeRegistries.Keys.BLOCKS, (helper) -> {
-                helper.register(new ResourceLocation(MODID, "converter"), new ConverterBlock());
-            });
-            event.register(ForgeRegistries.Keys.ITEMS, (helper) -> {
-                helper.register(new ResourceLocation(MODID, "converter"), new BlockItem(CONVERTER_BLOCK.get(), new Item.Properties().rarity(Rarity.COMMON)));
-            });
-            event.register(ForgeRegistries.Keys.BLOCK_ENTITY_TYPES, (helper) -> {
-                helper.register(new ResourceLocation(MODID, "converter"), ConverterTile.TYPE);
-            });
+            event.register(ForgeRegistries.Keys.BLOCKS, (helper) -> helper.register(new ResourceLocation(MODID, "converter"), new ConverterBlock()));
+            event.register(ForgeRegistries.Keys.ITEMS, (helper) -> helper.register(new ResourceLocation(MODID, "converter"), new BlockItem(CONVERTER_BLOCK.get(), new Item.Properties().rarity(Rarity.COMMON))));
+            event.register(ForgeRegistries.Keys.BLOCK_ENTITY_TYPES, (helper) -> helper.register(new ResourceLocation(MODID, "converter"), ConverterTile.TYPE));
         }
     }
 
-    @Mod.EventBusSubscriber(modid = AutoOreDictConv.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+    @Mod.EventBusSubscriber(modid = ItemTagConverter.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static class ClientForgeEvents {
         @SubscribeEvent
         public static void onTooltip(final ItemTooltipEvent event) {
             if (event.getItemStack().getItem() == ForgeRegistries.ITEMS.getValue(new ResourceLocation(MODID, ConverterBlock.NAME))) {
                 for (int i = 0; i < 3; i++) {
-                    event.getToolTip().add(Component.translatable("tooltip.autooredictconv.converter." + i));
+                    event.getToolTip().add(Component.translatable("tooltip.itemtagconverter.converter." + i));
                 }
             }
         }
     }
 
-    @Mod.EventBusSubscriber(modid = AutoOreDictConv.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+    @Mod.EventBusSubscriber(modid = ItemTagConverter.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
     public static class CommonForgeEvents {
         @SubscribeEvent
         public static void registerCommands(final RegisterCommandsEvent event) {
             CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-
-            CommandODC.register(dispatcher);
+            Command.register(dispatcher);
         }
 
         @SubscribeEvent
-        public static void onItemPickup(final EntityItemPickupEvent event)
-        {
+        public static void onItemPickup(final EntityItemPickupEvent event) {
             if (PAUSED_PLAYERS.contains(event.getEntity().getScoreboardName()))
                 return;
             ItemEntity itemEntity = event.getItem();
             ItemStack matchedItemStack = Converter.getMatchedConvertedItemStack(itemEntity.getItem());
-            if (matchedItemStack != null && event.isCancelable() ) {
+            if (matchedItemStack != null && event.isCancelable()) {
                 event.setCanceled(true);
                 itemEntity.setItem(matchedItemStack);
                 event.getEntity().onItemPickup(itemEntity);

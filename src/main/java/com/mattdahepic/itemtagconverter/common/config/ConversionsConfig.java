@@ -1,6 +1,6 @@
-package com.mattdahepic.autooredictconv.common.config;
+package com.mattdahepic.itemtagconverter.common.config;
 
-import com.mattdahepic.autooredictconv.common.convert.Converter;
+import com.zenesta.itemtagconverter.common.convert.Converter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -61,7 +61,7 @@ public class ConversionsConfig {
         try {
             if (line.startsWith("#"))
                 return;
-            if (line.equals(""))
+            if (line.isEmpty())
                 return;
 
             if (line.contains("=")) { // tag conversions
@@ -103,6 +103,7 @@ public class ConversionsConfig {
             out.write("forge:ores/diamond=minecraft:diamond_ore\n");
             out.write("forge:ores/emerald=minecraft:emerald_ore\n");
         } catch (IOException e) {
+
         }
     }
 }
