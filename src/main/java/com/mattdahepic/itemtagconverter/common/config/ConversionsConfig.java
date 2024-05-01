@@ -2,8 +2,6 @@ package com.mattdahepic.itemtagconverter.common.config;
 
 import com.zenesta.itemtagconverter.common.convert.Converter;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Scanner;
 import java.util.TreeMap;
+
+import static com.zenesta.itemtagconverter.common.ItemTagConverter.LOGGER;
 
 public class ConversionsConfig {
     private static final String[] comment = new String[]{
@@ -32,7 +32,9 @@ public class ConversionsConfig {
                 parse(scn.nextLine());
             }
             scn.close();
-        } catch (IOException ignored) {
+        } catch (IOException error) {
+            LOGGER.error(error.getMessage());
+            LOGGER.error(error.getStackTrace());
         }
     }
 
@@ -42,18 +44,24 @@ public class ConversionsConfig {
                 writer.write(c);
             new TreeMap<>(Converter.TAG_CONVERSION_MAP).forEach((tag, item) -> {
                 try {
-                    writer.write(tag + "=" + ForgeRegistries.ITEMS.getKey(item) + "\n");
-                } catch (IOException ignored) {
+                    writer.write(tag + "=" + item + "\n");
+                } catch (IOException error) {
+                    LOGGER.error(error.getMessage());
+                    LOGGER.error(error.getStackTrace());
                 }
             });
             writer.write("\n");
             new TreeMap<>(Converter.ITEM_CONVERSION_MAP).forEach((in, out) -> {
                 try {
-                    writer.write(ForgeRegistries.ITEMS.getKey(in) + ">" + ForgeRegistries.ITEMS.getKey(out) + "\n");
-                } catch (IOException ignored) {
+                    writer.write(in + ">" + out + "\n");
+                } catch (IOException error) {
+                    LOGGER.error(error.getMessage());
+                    LOGGER.error(error.getStackTrace());
                 }
             });
-        } catch (IOException ignored) {
+        } catch (IOException error) {
+            LOGGER.error(error.getMessage());
+            LOGGER.error(error.getStackTrace());
         }
     }
 
@@ -68,14 +76,11 @@ public class ConversionsConfig {
                 // tag:name=modid:item
                 ResourceLocation tag = ResourceLocation.of(line.substring(0, line.indexOf("=")), ':');
                 ResourceLocation itemLoc = ResourceLocation.of(line.substring(line.indexOf("=") + 1), ':');
-                Item item = ForgeRegistries.ITEMS.getValue(itemLoc);
-                Converter.TAG_CONVERSION_MAP.put(tag, item);
+                Converter.TAG_CONVERSION_MAP.put(tag, itemLoc);
             } else if (line.contains(">")) {
                 // modid:item>modid:item
-                Item in = ForgeRegistries.ITEMS
-                        .getValue(ResourceLocation.of(line.substring(0, line.indexOf('>')), ':'));
-                Item out = ForgeRegistries.ITEMS
-                        .getValue(ResourceLocation.of(line.substring(line.indexOf('>') + 1), ':'));
+                ResourceLocation in = ResourceLocation.of(line.substring(0, line.indexOf('>')), ':');
+                ResourceLocation out = ResourceLocation.of(line.substring(line.indexOf('>') + 1), ':');
                 Converter.ITEM_CONVERSION_MAP.put(in, out);
             } else {
                 throw new RuntimeException("Invalid conversion config on line \"" + line + "\"");
@@ -97,13 +102,16 @@ public class ConversionsConfig {
             for (String c : comment)
                 out.write(c);
             out.write("# Default conversions config\n");
+            out.write("forge:raw_materials/iron=minecraft:raw_iron\n");
+            out.write("forge:raw_materials/gold=minecraft:raw_gold\n");
             out.write("forge:ores/iron=minecraft:iron_ore\n");
             out.write("forge:ores/gold=minecraft:gold_ore\n");
             out.write("forge:ores/lapis=minecraft:lapis_ore\n");
             out.write("forge:ores/diamond=minecraft:diamond_ore\n");
             out.write("forge:ores/emerald=minecraft:emerald_ore\n");
-        } catch (IOException e) {
-
+        } catch (IOException error) {
+            LOGGER.error(error.getMessage());
+            LOGGER.error(error.getStackTrace());
         }
     }
 }

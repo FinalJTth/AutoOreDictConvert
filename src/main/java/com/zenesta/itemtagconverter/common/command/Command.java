@@ -9,6 +9,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.zenesta.itemtagconverter.common.ItemTagConverter;
 import com.zenesta.itemtagconverter.common.convert.Converter;
+import com.zenesta.itemtagconverter.common.registry.ItemRegistryManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -16,21 +17,16 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.tags.IReverseTag;
 import net.minecraftforge.registries.tags.ITag;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.List;
-import java.util.Objects;
-
-import static com.zenesta.itemtagconverter.common.ItemTagConverter.ITEMS_REGISTRIES;
-import static com.zenesta.itemtagconverter.common.ItemTagConverter.ITEMS_TAG_MANAGER;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 public class Command {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -45,29 +41,22 @@ public class Command {
                     throw new SimpleCommandExceptionType(
                             Component.translatable("itemtagconverter.command.missingarguments")).create();
                 }).then(Commands.argument("tag", ResourceLocationArgument.id())
-                        .suggests((ctx, bld) -> SharedSuggestionProvider.suggest(ITEMS_TAG_MANAGER.getTagNames()
-                                .map(TagKey::location).map(ResourceLocation::toString), bld))
+                        .suggests((ctx, bld) -> SharedSuggestionProvider.suggest(ItemRegistryManager.getAllItemTagResourceName(), bld))
                         .executes(Command::find)))
                 .then(Commands.literal("list").executes(Command::list))
                 .then(Commands.literal("add")
-                        .executes(Command::add))
-                .then(Commands.literal("set").executes((CommandContext<CommandSourceStack> ctx) -> {
-                    throw new SimpleCommandExceptionType(
-                            Component.translatable("itemtagconverter.command.missingarguments")).create();
-                }).then(Commands.argument("tag", ResourceLocationArgument.id())
-                        .suggests((ctx,
-                                   bld) -> SharedSuggestionProvider.suggest(ITEMS_TAG_MANAGER.getTagNames()
-                                .map(TagKey::location).map(ResourceLocation::toString), bld))
-                        .executes(Command::set)
+                        .executes(Command::add)
+                .then(Commands.argument("tag_or_item", ResourceLocationArgument.id())
+                        .suggests((ctx, bld) -> SharedSuggestionProvider.suggest(Stream.concat(ItemRegistryManager.getAllItemTagResourceName().stream(), ItemRegistryManager.getAllItemResourceName().stream()), bld))
+                        .executes(Command::addToHand)
                         .then(Commands.argument("item", ResourceLocationArgument.id())
-                                .suggests((ctx, bld) -> SharedSuggestionProvider.suggest(ITEMS_REGISTRIES.getValues()
-                                        .stream().map(item -> Objects.requireNonNull(ITEMS_REGISTRIES.getKey(item)).toString()), bld))
-                                .executes(Command::setItem))))
+                                .suggests((ctx, bld) -> SharedSuggestionProvider.suggest(ItemRegistryManager.getAllItemResourceName(), bld))
+                                .executes(Command::addTo))))
                 .then(Commands.literal("reload").executes(Command::reload))
                 .then(Commands.literal("remove").executes(Command::removeHand).then(Commands
                         .argument("tag", ResourceLocationArgument.id())
                         .suggests((ctx, bld) -> SharedSuggestionProvider.suggest(
-                                Converter.TAG_CONVERSION_MAP.keySet().stream().map(ResourceLocation::toString), bld))
+                                Stream.concat(Converter.TAG_CONVERSION_MAP.keySet().stream().map(ResourceLocation::toString), Converter.ITEM_CONVERSION_MAP.keySet().stream().map(ResourceLocation::toString)), bld))
                         .executes(Command::removeTag)))
                 .then(Commands.literal("pause").requires(s -> s.hasPermission(0)).executes(Command::pause))
                 .then(Commands.literal("convert").requires(s -> s.hasPermission(0)).executes(Command::convert)
@@ -88,54 +77,63 @@ public class Command {
 
     public static int detect(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ItemStack item = ctx.getSource().getPlayerOrException().getItemInHand(InteractionHand.MAIN_HAND);
+
         ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.detect",
-                Objects.requireNonNull(ITEMS_REGISTRIES.getKey(item.getItem())).toString()), true);
-        ITEMS_TAG_MANAGER.getReverseTag(item.getItem())
-                .ifPresent(rt -> rt.getTagKeys()
-                        .forEach(tk -> ctx.getSource().sendSuccess(
-                                () -> Component.translatable("itemtagconverter.command.tagconverter._each", tk.location().toString()),
-                                true)));
+                ItemRegistryManager.getItemResource(item.getItem()).toString()), true);
+
+        ItemRegistryManager.getItemTagResources(item.getItem()).forEach(resource ->
+                ctx.getSource().sendSuccess(() ->
+                        Component.translatable("itemtagconverter.command.tagconverter._each", resource.toString()), true));
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
     public static int dump(CommandContext<CommandSourceStack> ctx) {
         ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.dump"), true);
-        ITEMS_TAG_MANAGER.getTagNames()
-                .forEach(r -> ctx.getSource().sendSuccess(() -> Component.literal(r.location().toString()), true));
+
+        ItemRegistryManager.getAllItemTagResourceName().forEach(resource ->
+                ctx.getSource().sendSuccess(() -> Component.literal(resource), true));
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
     public static int find(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ResourceLocation loc = ResourceLocationArgument.getId(ctx, "tag");
-        ITag<Item> tag = ITEMS_TAG_MANAGER.getTag(ItemTags.create(loc));
+        ITag<Item> tag = ItemRegistryManager.getItemTagFromResource(loc);
+
         if (tag.isEmpty())
             throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._no_tag", loc.toString()))
                     .create();
+
         ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.find", loc.toString()), true);
         tag.stream().forEach(i -> {
             ctx.getSource().sendSuccess(
-                    () -> Component.translatable("itemtagconverter.command.tagconverter._each", Objects.requireNonNull(ITEMS_REGISTRIES.getKey(i)).toString()),
+                    () -> Component.translatable("itemtagconverter.command.tagconverter._each", ItemRegistryManager.getItemResource(i).toString()),
                     true);
         });
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
     public static int list(CommandContext<CommandSourceStack> ctx) {
         ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.list"), false);
+
         if (!Converter.TAG_CONVERSION_MAP.isEmpty()) {
             ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.list.tag"), true);
             Converter.TAG_CONVERSION_MAP.forEach((tag, item) -> {
                 ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter._each_pair", tag.toString(),
-                        Objects.requireNonNull(ITEMS_REGISTRIES.getKey(item)).toString()), true);
+                        item.toString()), true);
             });
         }
+
         if (!Converter.ITEM_CONVERSION_MAP.isEmpty()) {
             ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.list.item"), true);
             Converter.ITEM_CONVERSION_MAP.forEach((in, out) -> {
                 ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter._each_pair",
-                        Objects.requireNonNull(ITEMS_REGISTRIES.getKey(in)).toString(), Objects.requireNonNull(ITEMS_REGISTRIES.getKey(out)).toString()), true);
+                        in.toString(), out.toString()), true);
             });
         }
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
@@ -144,55 +142,76 @@ public class Command {
         if (held.getItem() == Items.AIR)
             throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._must_be_holding"))
                     .create();
-        int addedTo = 0;
-        for (IReverseTag<Item> reverseTag : ITEMS_TAG_MANAGER.getReverseTag(held.getItem()).stream()
-                .toList()) {
-            for (TagKey<Item> key : reverseTag.getTagKeys().toList()) {
-                ResourceLocation tag = key.location();
-                if (Converter.TAG_BLACKLIST.contains(tag.toString()) || Converter.TAG_BLACKLIST.contains(tag.toString().split(":")[0]))
-                    continue; // ignore tags that everything has in addition to their actual entries.
-                Converter.TAG_CONVERSION_MAP.put(tag, held.getItem());
-                addedTo++;
-                ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.add",
-                        Objects.requireNonNull(ITEMS_REGISTRIES.getKey(held.getItem())).toString(), tag.toString()), true);
-            }
-        }
-        if (addedTo == 0)
+
+        final AtomicReference<Boolean> hasAdded = new AtomicReference<Boolean>(false);
+        ItemRegistryManager.getItemTagResources(held.getItem()).forEach(tag -> {
+            if (Converter.TAG_BLACKLIST.contains(tag.toString()) || Converter.TAG_BLACKLIST.contains(tag.toString().split(":")[0]))
+                return;
+            hasAdded.set(true);
+            Converter.TAG_CONVERSION_MAP.put(tag, ItemRegistryManager.getItemResource(held.getItem()));
+            ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.add",
+                    ItemRegistryManager.getItemResource(held.getItem()).toString(), tag.toString()), true);
+
+        });
+
+        if (!hasAdded.get())
             ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.add.none"), true);
+
         ConversionsConfig.save();
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
-    public static int set(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        ResourceLocation loc = ResourceLocationArgument.getId(ctx, "tag");
-        ITag<Item> tag = ITEMS_TAG_MANAGER.getTag(ItemTags.create(loc));
-        if (tag.isEmpty())
-            throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._no_tag", loc.toString())).create();
+    public static int addToHand(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ResourceLocation loc = ResourceLocationArgument.getId(ctx, "tag_or_item");
+        ITag<Item> tag = ItemRegistryManager.getItemTagFromResource(loc);
+        Item item = ItemRegistryManager.getItemFromResource(loc);
+
+        if (tag.isEmpty() && item == null)
+            throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._no_tag_or_item", loc.toString())).create();
+
         ItemStack held = ctx.getSource().getPlayerOrException().getItemInHand(InteractionHand.MAIN_HAND);
         if (held.getItem() == Items.AIR)
             throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._must_be_holding")).create();
-        Converter.TAG_CONVERSION_MAP.put(loc, held.getItem());
+
+        if (!tag.isEmpty())
+            Converter.TAG_CONVERSION_MAP.put(loc, ItemRegistryManager.getItemResource(held.getItem()));
+        else
+            Converter.ITEM_CONVERSION_MAP.put(loc, ItemRegistryManager.getItemResource(held.getItem()));
+
         ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.add",
-                Objects.requireNonNull(ITEMS_REGISTRIES.getKey(held.getItem())).toString(), loc.toString()), true);
+                ItemRegistryManager.getItemResource(held.getItem()).toString(), loc.toString()), true);
+
         ConversionsConfig.save();
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
-    public static int setItem(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        ResourceLocation loc = ResourceLocationArgument.getId(ctx, "tag");
+    public static int addTo(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ResourceLocation loc = ResourceLocationArgument.getId(ctx, "tag_or_item");
         ResourceLocation itemLoc = ResourceLocationArgument.getId(ctx, "item");
-        ITag<Item> tag = ITEMS_TAG_MANAGER.getTag(ItemTags.create(loc));
-        if (tag.isEmpty())
-            throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._no_tag", loc.toString()))
+        ITag<Item> tag = ItemRegistryManager.getItemTagFromResource(loc);
+        Item item1 = ItemRegistryManager.getItemFromResource(loc);
+
+        if (tag.isEmpty() && item1 == null)
+            throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._no_tag_or_item", loc.toString()))
                     .create();
-        Item item = ITEMS_REGISTRIES.getValue(itemLoc);
-        if (item == null || Objects.requireNonNull(ITEMS_REGISTRIES.getKey(item)).toString().equals("minecraft:air"))
+
+        Item item2 = ItemRegistryManager.getItemFromResource(itemLoc);
+        if (item2 == null || ItemRegistryManager.getItemResource(item2).toString().equals("minecraft:air"))
             throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._no_item", itemLoc.toString()))
                     .create();
-        Converter.TAG_CONVERSION_MAP.put(loc, item);
+
+        if (!tag.isEmpty())
+            Converter.TAG_CONVERSION_MAP.put(loc, itemLoc);
+        else
+            Converter.ITEM_CONVERSION_MAP.put(loc, itemLoc);
+
         ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.add",
-                Objects.requireNonNull(ITEMS_REGISTRIES.getKey(item)).toString(), loc.toString()), true);
+                ItemRegistryManager.getItemResource(item2).toString(), loc.toString()), true);
+
         ConversionsConfig.save();
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
@@ -204,30 +223,38 @@ public class Command {
 
     public static int removeHand(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ItemStack held = ctx.getSource().getPlayerOrException().getItemInHand(InteractionHand.MAIN_HAND);
+
         if (held.getItem() == Items.AIR)
             throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._must_be_holding"))
                     .create();
-        for (IReverseTag<Item> reverseTag : ITEMS_TAG_MANAGER.getReverseTag(held.getItem()).stream()
-                .toList()) {
-            for (TagKey<Item> key : reverseTag.getTagKeys().toList()) {
-                ResourceLocation tag = key.location();
-                remove(tag, ctx);
-            }
-        }
+
+        ItemRegistryManager.getItemTagResources(held.getItem()).forEach(resource -> remove(resource, ctx));
+
         ConversionsConfig.save();
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
     public static int removeTag(CommandContext<CommandSourceStack> ctx) {
         ResourceLocation tag = ResourceLocationArgument.getId(ctx, "tag");
+
         remove(tag, ctx);
+
         ConversionsConfig.save();
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
-    private static void remove(ResourceLocation tag, CommandContext<CommandSourceStack> ctx) {
-        Converter.TAG_CONVERSION_MAP.remove(tag);
-        ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.remove", tag.toString()), true);
+    private static void remove(ResourceLocation resource, CommandContext<CommandSourceStack> ctx) {
+        ITag<Item> tag = ItemRegistryManager.getItemTagFromResource(resource);
+        Item item = ItemRegistryManager.getItemFromResource(resource);
+
+        if (!tag.isEmpty())
+            Converter.TAG_CONVERSION_MAP.remove(resource);
+        else if (item != null)
+            Converter.ITEM_CONVERSION_MAP.remove(resource);
+
+        ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.remove", resource.toString()), true);
     }
 
     public static int pause(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
@@ -251,20 +278,26 @@ public class Command {
 
     public static int convert(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         Converter.convertInPlayer(ctx.getSource().getPlayerOrException());
+
         ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.convert",
                 "your inventory"), true);
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 
     public static int convertWithType(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         String arg = StringArgumentType.getString(ctx, "type");
+
         if (!arg.equals("all"))
             throw new SimpleCommandExceptionType(Component.translatable("itemtagconverter.command.tagconverter._wrong_convert_type", arg)).create();
+
         for (ServerPlayer p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
             Converter.convertInPlayer(p);
         }
+
         ctx.getSource().sendSuccess(() -> Component.translatable("itemtagconverter.command.tagconverter.convert",
                 "all player's inventory"), true);
+
         return com.mojang.brigadier.Command.SINGLE_SUCCESS;
     }
 }

@@ -1,22 +1,18 @@
 package com.zenesta.itemtagconverter.common.convert;
 
+import com.zenesta.itemtagconverter.common.registry.ItemRegistryManager;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
-import net.minecraftforge.registries.tags.IReverseTag;
-import net.minecraftforge.registries.tags.ITagManager;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static com.zenesta.itemtagconverter.common.ItemTagConverter.ITEMS_TAG_MANAGER;
-
-public class Converter extends Thread {
+public class Converter {
     public static final List<String> TAG_BLACKLIST = Arrays.asList("forge:ores", "forge:nuggets", "forge:ingots",
             "forge:blocks", "forge:dusts", "forge:gears", "forge:coins", "forge:plates", "forge:raw_materials",
             "forge:gems", "forge:crops", "forge:dyes", "forge:foods", "forge:fruits", "forge:glass", "forge:glass_pane",
@@ -28,8 +24,8 @@ public class Converter extends Thread {
             "minecolonies:sawmill_ingredient_excluded", "minecolonies:blacksmith_product",
             "minecolonies:blacksmith_ingredient", "minecolonies:reduceable_product_excluded",
             "minecolonies:reduceable_ingredient", "resourcefulbees:valid_apiary", "ae2:metal_ingots");
-    public static final Map<ResourceLocation, Item> TAG_CONVERSION_MAP = new HashMap<>();
-    public static final Map<Item, Item> ITEM_CONVERSION_MAP = new HashMap<>();
+    public static final Map<ResourceLocation, ResourceLocation> TAG_CONVERSION_MAP = new HashMap<>();
+    public static final Map<ResourceLocation, ResourceLocation> ITEM_CONVERSION_MAP = new HashMap<>();
 
     /* UTIL */
     private static boolean isItemStackMatchIgnoreAmount(ItemStack template, ItemStack compare, boolean compareNBT) {
@@ -50,19 +46,17 @@ public class Converter extends Thread {
     public static @Nullable ItemStack getMatchedConvertedItemStack(ItemStack stack) {
         if (stack == null || stack.isEmpty())
             return null;
-        if (ITEM_CONVERSION_MAP.containsKey(stack.getItem())) {
-            return new ItemStack(ITEM_CONVERSION_MAP.get(stack.getItem()), stack.getCount());
+        ResourceLocation itemResource = ItemRegistryManager.getItemResource(stack.getItem());
+        if (ITEM_CONVERSION_MAP.containsKey(itemResource)) {
+            Item matched = ItemRegistryManager.getItemFromResource(ITEM_CONVERSION_MAP.get(itemResource));
+            if (matched != null)
+                return new ItemStack(matched, stack.getCount());
         }
-        ITagManager<Item> itemTags = Objects.requireNonNull(ITEMS_TAG_MANAGER);
-        for (IReverseTag<Item> reverseTag : itemTags.getReverseTag(stack.getItem()).stream()
-                .toList()) {
-            for (TagKey<Item> key : reverseTag.getTagKeys().toList()) {
-                ResourceLocation tag = key.location();
-                if (TAG_CONVERSION_MAP.containsKey(tag)) {
-                    ItemStack matchedStack = new ItemStack(TAG_CONVERSION_MAP.get(tag), stack.getCount());
-                    if (!isItemStackMatchIgnoreAmount(stack, matchedStack, false)) {
-                        return matchedStack;
-                    }
+        for (ResourceLocation resource : ItemRegistryManager.getItemTagResources(stack.getItem())) {
+            if (TAG_CONVERSION_MAP.containsKey(resource)) {
+                ItemStack matchedStack = new ItemStack(Objects.requireNonNull(ItemRegistryManager.getItemFromResource(TAG_CONVERSION_MAP.get(resource))), stack.getCount());
+                if (!isItemStackMatchIgnoreAmount(stack, matchedStack, false)) {
+                    return matchedStack;
                 }
             }
         }

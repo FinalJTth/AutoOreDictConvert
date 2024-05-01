@@ -23,10 +23,10 @@ import javax.annotation.Nullable;
 public class ConverterTile extends BlockEntity implements ICapabilityProvider, IItemHandler {
     private static final int SIZE = 1;
     private final NonNullList<ItemStack> contents = NonNullList.withSize(SIZE, ItemStack.EMPTY);
+
     public ConverterTile(BlockPos pos, BlockState state) {
         super(TYPE, pos, state);
-    }    public static final BlockEntityType<?> TYPE = BlockEntityType.Builder
-            .of(ConverterTile::new, ItemTagConverter.CONVERTER_BLOCK.get()).build(null);
+    }
 
     @Override
     public <T> @NotNull LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
@@ -52,7 +52,8 @@ public class ConverterTile extends BlockEntity implements ICapabilityProvider, I
     @Override
     public @NotNull ItemStack getStackInSlot(int slot) {
         return slot < contents.size() ? contents.get(slot) : ItemStack.EMPTY;
-    }
+    }    public static final BlockEntityType<?> TYPE = BlockEntityType.Builder
+            .of(ConverterTile::new, ItemTagConverter.CONVERTER_BLOCK.get()).build(null);
 
     @Override
     public @NotNull ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {

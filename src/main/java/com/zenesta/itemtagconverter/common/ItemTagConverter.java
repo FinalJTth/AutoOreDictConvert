@@ -30,27 +30,21 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.registries.*;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.MissingMappingsEvent;
 import net.minecraftforge.registries.MissingMappingsEvent.Mapping;
-import net.minecraftforge.registries.tags.ITagManager;
+import net.minecraftforge.registries.RegisterEvent;
+import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Objects;
 
 @Mod("itemtagconverter")
 public class ItemTagConverter {
     public static final String MODID = "itemtagconverter";
-    public static final Logger LOGGER = LogManager.getLogger();
-
-    public static final IForgeRegistry<Item> ITEMS_REGISTRIES = ForgeRegistries.ITEMS;
-    public static final ITagManager<Item> ITEMS_TAG_MANAGER = Objects.requireNonNull(ForgeRegistries.ITEMS.tags());
-    public static final IForgeRegistry<Block> BLOCKS_REGISTRIES = ForgeRegistries.BLOCKS;
-    public static final ITagManager<Block> BLOCKS_TAG_MANAGER = Objects.requireNonNull(ForgeRegistries.BLOCKS.tags());
-    public static final IForgeRegistry<BlockEntityType<?>> BLOCK_ENTITIES_REGISTRIES = ForgeRegistries.BLOCK_ENTITY_TYPES;
-    public static final ITagManager<BlockEntityType<?>> BLOCK_ENTITIES_TAG_MANAGER = Objects.requireNonNull(ForgeRegistries.BLOCK_ENTITY_TYPES.tags());
+    public static final Logger LOGGER = LogManager.getLogger(MODID);
 
     public static final RegistryObject<Block> CONVERTER_BLOCK = RegistryObject.create(new ResourceLocation(MODID, "converter"), ForgeRegistries.BLOCKS);
     public static final RegistryObject<Item> CONVERTER_ITEM = RegistryObject.create(new ResourceLocation(MODID, "converter"), ForgeRegistries.ITEMS);
@@ -90,7 +84,6 @@ public class ItemTagConverter {
         @SubscribeEvent
         public static void commonSetup(final FMLCommonSetupEvent event) {
             PacketHandler.initPackets();
-            // CommandRegistry.registerCommand(CommandODC::register);
             ConversionsConfig.load();
             LOGGER.info("Ready to convert with " + Converter.TAG_CONVERSION_MAP.keySet().size() + " entries in the config.");
         }
