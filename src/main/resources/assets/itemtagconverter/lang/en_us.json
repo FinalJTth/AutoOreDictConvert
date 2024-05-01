@@ -37,5 +37,5 @@
   "tooltip.itemtagconverter.converter.1": "Pipe items into the top and out of the bottom, they will be converted within.",
   "tooltip.itemtagconverter.converter.2": "Has no inventory, converts instantly.",
   "key.itemtagconverter.category": "Item Converter",
-  "key.itemtagconverter.convert": "Convert Items in Conversation List"
+  "key.itemtagconverter.convert": "Convert Items"
 }
