@@ -3,9 +3,10 @@
   "1.20.1": {
     "1.0.0": "Completely port from version 1.19.2",
     "1.0.1": "Remove \"set\" command and add it's subsequence execution to \"add\" command instead. \"add\" command can now also add item resource id instead of tag alone.",
-    "1.0.2": "Rewritten keybinding code. Should be working now, if it's not working before."
+    "1.0.2": "Rewritten keybinding code. Should be working now, if it's not working before.",
+    "1.0.3": "Fix keybinding name swap with its category name in the option."
   },
   "promos": {
-    "1.20.1-recommended": "1.0.2"
+    "1.20.1-recommended": "1.0.3"
   }
 }
