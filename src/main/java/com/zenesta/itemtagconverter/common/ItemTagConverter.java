@@ -4,8 +4,7 @@ import com.mattdahepic.itemtagconverter.common.block.ConverterBlock;
 import com.mattdahepic.itemtagconverter.common.block.ConverterTile;
 import com.mattdahepic.itemtagconverter.common.config.ConversionsConfig;
 import com.mattdahepic.itemtagconverter.common.config.OptionsConfig;
-import com.mattdahepic.itemtagconverter.common.keypress.KeyHandler;
-import com.mattdahepic.itemtagconverter.common.keypress.PacketHandler;
+import com.zenesta.itemtagconverter.common.network.NetworkManager;
 import com.mojang.brigadier.CommandDispatcher;
 import com.zenesta.itemtagconverter.common.command.Command;
 import com.zenesta.itemtagconverter.common.convert.Converter;
@@ -17,7 +16,6 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
@@ -26,9 +24,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.MissingMappingsEvent;
@@ -64,14 +60,6 @@ public class ItemTagConverter {
     @Mod.EventBusSubscriber(modid = ItemTagConverter.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
         @SubscribeEvent
-        public static void clientSetup(final FMLClientSetupEvent event) {
-            if (OptionsConfig.COMMON.enableKeypress.get()) {
-                FMLJavaModLoadingContext.get().getModEventBus().addListener(KeyHandler::register);
-                MinecraftForge.EVENT_BUS.addListener(KeyHandler::onKeyInput);
-            }
-        }
-
-        @SubscribeEvent
         public static void buildCreativeTabs(final BuildCreativeModeTabContentsEvent event) {
             if (event.getTabKey() == CreativeModeTabs.OP_BLOCKS) {
                 event.accept(ItemTagConverter.CONVERTER_ITEM);
@@ -83,9 +71,9 @@ public class ItemTagConverter {
     public static class CommonModEvents {
         @SubscribeEvent
         public static void commonSetup(final FMLCommonSetupEvent event) {
-            PacketHandler.initPackets();
+            NetworkManager.initPackets();
             ConversionsConfig.load();
-            LOGGER.info("Ready to convert with " + Converter.TAG_CONVERSION_MAP.keySet().size() + " entries in the config.");
+            LOGGER.info("Ready to convert with {} entries in the config.", Converter.TAG_CONVERSION_MAP.keySet().size());
         }
 
         @SubscribeEvent
@@ -127,11 +115,6 @@ public class ItemTagConverter {
                 itemEntity.setItem(matchedItemStack);
                 event.getEntity().onItemPickup(itemEntity);
             }
-        }
-
-        @SubscribeEvent
-        public static void onMissing(final MissingMappingsEvent event) {
-            event.getMappings(ForgeRegistries.Keys.ITEMS, MODID).stream().filter(mapping -> mapping.getKey().getPath().contains("test")).forEach(Mapping::ignore);
         }
     }
 }
