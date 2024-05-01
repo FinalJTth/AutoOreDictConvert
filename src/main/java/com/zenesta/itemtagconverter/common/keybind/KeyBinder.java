@@ -17,8 +17,8 @@ import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
 public class KeyBinder {
-    public static final Lazy<KeyMapping> KEYBINDING_CONVERT = Lazy.of(() -> new KeyMapping("key.itemtagconverter.category", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_END,
-            "key.itemtagconverter.convert"));
+    public static final Lazy<KeyMapping> KEYBINDING_CONVERT = Lazy.of(() -> new KeyMapping("key.itemtagconverter.convert", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_END,
+            "key.itemtagconverter.category"));
 
     @Mod.EventBusSubscriber(modid = ItemTagConverter.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
