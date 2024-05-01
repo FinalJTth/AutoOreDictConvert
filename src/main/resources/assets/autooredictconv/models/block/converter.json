@@ -1,8 +1,0 @@
-{
-  "parent": "block/cube_bottom_top",
-  "textures": {
-    "top": "autooredictconv:block/converter_top",
-    "bottom": "autooredictconv:block/converter_bottom",
-    "side": "minecraft:block/crafting_table_side"
-  }
-}
