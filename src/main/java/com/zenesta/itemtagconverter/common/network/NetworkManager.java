@@ -1,36 +1,25 @@
 package com.zenesta.itemtagconverter.common.network;
 
-import com.zenesta.itemtagconverter.common.ItemTagConverter;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.*;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
+
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class NetworkManager {
-    private static int packetId = 0;
-    private static int id() {
-        return packetId++;
-    }
+    private static final String PROTOCOL_VERSION = "1";
+    public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
+            new ResourceLocation("itemtagconverter", "main"), () -> PROTOCOL_VERSION, PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals);
 
-    public static final SimpleChannel INSTANCE = ChannelBuilder.named(new ResourceLocation(ItemTagConverter.MODID, "main"))
-            .clientAcceptedVersions((status, versions) -> true)
-            .serverAcceptedVersions((status, versions) -> true)
-            .networkProtocolVersion(1)
-            .simpleChannel();
+    private static int nextPacketId = 0;
 
     public static void register() {
-        INSTANCE.messageBuilder(ConvertMessage.class, id(), NetworkDirection.PLAY_TO_SERVER)
-                .decoder(ConvertMessage::decode)
-                .encoder(ConvertMessage::encode)
-                .consumerMainThread(ConvertMessage::handle)
-                .add();
-    }
-    public static void sendToServer(Object message) {
-        INSTANCE.send(message, PacketDistributor.SERVER.noArg());
-    }
-    public static void sendToPlayer(Object message, ServerPlayer pe) {//
-        INSTANCE.send(message, PacketDistributor.PLAYER.with(pe));
-    }
-    public static void sendToAllClients(Object message) {
-        INSTANCE.send(message, PacketDistributor.ALL.noArg());
+        INSTANCE.registerMessage(nextPacketId, messageType, encoder, decoder, handler);
+        ++nextPacketId;
     }
 }
