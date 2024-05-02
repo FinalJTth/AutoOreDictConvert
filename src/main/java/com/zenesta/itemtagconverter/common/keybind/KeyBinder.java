@@ -31,7 +31,7 @@ public class KeyBinder {
         @SubscribeEvent
         public static void onClientTick(final TickEvent.ClientTickEvent event) {
             if (event.phase == TickEvent.Phase.END) { // Only call code once as the tick event is called twice every tick
-                if (KEYBINDING_CONVERT.get().consumeClick() && OptionsConfig.COMMON.enableKeypress.get()) {
+                if (KEYBINDING_CONVERT.get().consumeClick() && OptionsConfig.CLIENT.enableKeypress.get()) {
                     NetworkManager.sendToServer(new ConvertMessage());
                 }
             }

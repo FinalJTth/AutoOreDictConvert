@@ -24,11 +24,10 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.MissingMappingsEvent;
-import net.minecraftforge.registries.MissingMappingsEvent.Mapping;
 import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
@@ -49,11 +48,7 @@ public class ItemTagConverter {
     public static final ArrayList<String> PAUSED_PLAYERS = new ArrayList<String>();
 
     public ItemTagConverter() {
-        loadConfig();
-    }
-
-    public void loadConfig() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, OptionsConfig.COMMON_SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, OptionsConfig.CLIENT_SPEC);
         ConversionsConfig.file = Paths.get(FMLPaths.CONFIGDIR.get().toString(), MODID + "-conversions.cfg").toFile();
     }
 
