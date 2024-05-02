@@ -71,7 +71,7 @@ public class ItemTagConverter {
     public static class CommonModEvents {
         @SubscribeEvent
         public static void commonSetup(final FMLCommonSetupEvent event) {
-            NetworkManager.initPackets();
+            NetworkManager.register();
             ConversionsConfig.load();
             LOGGER.info("Ready to convert with {} entries in the config.", Converter.TAG_CONVERSION_MAP.keySet().size());
         }
