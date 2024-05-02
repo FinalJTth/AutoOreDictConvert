@@ -19,7 +19,7 @@ public class NetworkManager {
     private static int nextPacketId = 0;
 
     public static void register() {
-        INSTANCE.registerMessage(nextPacketId, ConvertMessage.class, ConvertMessage.class::encode, ConvertMessage::decode, ConvertMessage::handle);
+        INSTANCE.registerMessage(nextPacketId, ConvertMessage.class, ConvertMessage::encode, ConvertMessage::decode, ConvertMessage::handle);
         ++nextPacketId;
     }
 }
