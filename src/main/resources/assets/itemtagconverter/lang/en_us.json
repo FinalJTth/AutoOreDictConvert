@@ -31,9 +31,11 @@
   "itemtagconverter.command.tagconverter.pause.invalid": "This command can only be run as a player !",
   "itemtagconverter.command.tagconverter.pause.pause": "Conversions paused.",
   "itemtagconverter.command.tagconverter.pause.unpause": "Conversions unpaused.",
-  "itemtagconverter.converting": "Converting!",
+  "itemtagconverter.converting": "Converting all items !",
   "block.itemtagconverter.converter": "Auto Converter",
   "tooltip.itemtagconverter.converter.0": "Converts items.",
   "tooltip.itemtagconverter.converter.1": "Pipe items into the top and out of the bottom, they will be converted within.",
-  "tooltip.itemtagconverter.converter.2": "Has no inventory, converts instantly."
+  "tooltip.itemtagconverter.converter.2": "Has no inventory, converts instantly.",
+  "key.itemtagconverter.category": "Item Converter",
+  "key.itemtagconverter.convert": "Convert Items"
 }

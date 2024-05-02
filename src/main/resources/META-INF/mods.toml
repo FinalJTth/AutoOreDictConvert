@@ -7,9 +7,9 @@ issueTrackerURL = "https://github.com/FinalJTth/&{mod_name}/issues"
 modId = "${mod_id}"
 version = "${mod_version}"
 displayName = "${mod_name}"
-updateJSONURL = "https://raw.githubusercontent.com/MattDahEpic/Version/master/itemtagconverter.json"
-displayURL = "https://www.curseforge.com/minecraft/mc-mods/auto-ore-dictionary-converter"
-credits = "Thanks to the entire open source mod community from which I used code."
+updateJSONURL = "https://raw.githubusercontent.com/FinalJTth/ItemTagConverter/changelog/changelog.json"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/item-tag-converter"
+credits = "Thanks to MattDahEpic and the entire open source mod community from which I used code."
 authors = "${mod_authors}"
 description = '''${mod_description}'''
 

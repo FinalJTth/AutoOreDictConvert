@@ -1,4 +1,4 @@
-package com.mattdahepic.itemtagconverter.common.keypress;
+package com.zenesta.itemtagconverter.common.network;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -10,7 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class PacketHandler {
+public class NetworkManager {
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
             new ResourceLocation("itemtagconverter", "main"), () -> PROTOCOL_VERSION, PROTOCOL_VERSION::equals,
