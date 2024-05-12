@@ -24,8 +24,8 @@ public class Converter {
             "minecolonies:sawmill_ingredient_excluded", "minecolonies:blacksmith_product",
             "minecolonies:blacksmith_ingredient", "minecolonies:reduceable_product_excluded",
             "minecolonies:reduceable_ingredient", "resourcefulbees:valid_apiary", "ae2:metal_ingots");
-    public static final Map<ResourceLocation, ResourceLocation> TAG_CONVERSION_MAP = new HashMap<>();
-    public static final Map<ResourceLocation, ResourceLocation> ITEM_CONVERSION_MAP = new HashMap<>();
+    public static final Map<ResourceLocation, ResourceLocation> TAG_CONVERSION_MAP = new LinkedHashMap<>();
+    public static final Map<ResourceLocation, ResourceLocation> ITEM_CONVERSION_MAP = new LinkedHashMap<>();
 
     /* UTIL */
     private static boolean isItemStackMatchIgnoreAmount(ItemStack template, ItemStack compare, boolean compareNBT) {

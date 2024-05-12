@@ -11,7 +11,7 @@ public class NetworkManager {
         return packetId++;
     }
 
-    public static final SimpleChannel INSTANCE = ChannelBuilder.named(new ResourceLocation(ItemTagConverter.MODID, "main"))
+    public static final SimpleChannel INSTANCE = ChannelBuilder.named(new ResourceLocation(ItemTagConverter.MOD_ID, "main"))
             .clientAcceptedVersions((status, versions) -> true)
             .serverAcceptedVersions((status, versions) -> true)
             .networkProtocolVersion(1)
