@@ -1,6 +1,6 @@
 package com.zenesta.itemtagconverter.common.keybind;
 
-import com.mattdahepic.itemtagconverter.common.config.OptionsConfig;
+import com.zenesta.itemtagconverter.config.OptionsConfig;
 import com.zenesta.itemtagconverter.common.network.ConvertMessage;
 import com.zenesta.itemtagconverter.common.network.NetworkManager;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -18,7 +18,7 @@ public class KeyBinder {
     public static final Lazy<KeyMapping> KEYBINDING_CONVERT = Lazy.of(() -> new KeyMapping("key.itemtagconverter.convert", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_END,
             "key.itemtagconverter.category"));
 
-    @Mod.EventBusSubscriber(modid = ItemTagConverter.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    @Mod.EventBusSubscriber(modid = ItemTagConverter.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
         @SubscribeEvent
         public static void registerKeyMapping(final RegisterKeyMappingsEvent event) {
@@ -26,7 +26,7 @@ public class KeyBinder {
         }
     }
 
-    @Mod.EventBusSubscriber(modid = ItemTagConverter.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+    @Mod.EventBusSubscriber(modid = ItemTagConverter.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static class ClientForgeEvents {
         @SubscribeEvent
         public static void onClientTick(final TickEvent.ClientTickEvent event) {
