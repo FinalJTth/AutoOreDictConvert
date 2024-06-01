@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.util.Scanner;
 import java.util.TreeMap;
 
-import static com.zenesta.itemtagconverter.common.ItemTagConverter.LOGGER;
+import static com.zenesta.itemtagconverter.ItemTagConverter.LOGGER;
 
 public class ConversionsConfig {
     private static final String[] comment = new String[]{

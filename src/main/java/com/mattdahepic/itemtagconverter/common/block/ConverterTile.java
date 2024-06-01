@@ -1,6 +1,6 @@
 package com.mattdahepic.itemtagconverter.common.block;
 
-import com.zenesta.itemtagconverter.common.ItemTagConverter;
+import com.zenesta.itemtagconverter.ItemTagConverter;
 import com.zenesta.itemtagconverter.common.convert.Converter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

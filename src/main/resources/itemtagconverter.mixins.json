@@ -2,10 +2,10 @@
   "required": true,
   "package": "com.zenesta.itemtagconverter.mixin",
   "compatibilityLevel": "JAVA_17",
-  "refmap": "morewaterlogged.refmap.json",
+  "refmap": "itemtagconverter.refmap.json",
   "target": "@env(DEFAULT)",
   "mixins": [
-    "MixinBlock"
+    "BlockMixin"
   ],
   "client": [
   ],

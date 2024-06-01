@@ -7,7 +7,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import com.zenesta.itemtagconverter.common.ItemTagConverter;
+import com.zenesta.itemtagconverter.ItemTagConverter;
 import com.zenesta.itemtagconverter.common.convert.Converter;
 import com.zenesta.itemtagconverter.common.registry.ItemRegistryManager;
 import net.minecraft.commands.CommandSourceStack;

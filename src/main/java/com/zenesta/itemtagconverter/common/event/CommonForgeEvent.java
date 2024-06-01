@@ -1,32 +1,43 @@
 package com.zenesta.itemtagconverter.common.event;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.zenesta.itemtagconverter.common.ItemTagConverter;
+import com.zenesta.itemtagconverter.ItemTagConverter;
 import com.zenesta.itemtagconverter.common.command.Command;
 import com.zenesta.itemtagconverter.common.convert.Converter;
-import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.level.ServerPlayerGameMode;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.npc.InventoryCarrier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.PlayerEnderChestContainer;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EnderChestBlock;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.EnderChestBlockEntity;
+import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
-import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.entity.player.PlayerContainerEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 
-import static com.zenesta.itemtagconverter.common.ItemTagConverter.PAUSED_PLAYERS;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-@Mod.EventBusSubscriber(modid = ItemTagConverter.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+import static com.zenesta.itemtagconverter.ItemTagConverter.PAUSED_PLAYERS;
+
+@Mod.EventBusSubscriber(modid = ItemTagConverter.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CommonForgeEvent {
     @SubscribeEvent
     public static void registerCommands(final RegisterCommandsEvent event) {
@@ -48,36 +59,48 @@ public class CommonForgeEvent {
     }
     /*
     @SubscribeEvent
-    public static void onPlayerTick(final TickEvent.PlayerTickEvent event) {
-        if(event.side == LogicalSide.CLIENT)
-            return;
+    public static void onRightClickBlock(final PlayerInteractEvent.RightClickBlock event) {
+        Consumer<Container> convertContainer = (Container container) -> {
+            int maxSlot = container.getContainerSize();
 
-        if(event.phase != TickEvent.Phase.END)
-            return;
+            for (int i = 0; i < maxSlot; i++) {
+                ItemStack slotItem = container.getItem(i);
 
-        ServerPlayer player = (ServerPlayer) event.player;
+                ItemStack matchedItemStack = Converter.getMatchedConvertedItemStack(slotItem);
 
-        ServerPlayerGameMode gameMode = player.gameMode;
+                if (matchedItemStack != null) {
+                    container.setItem(i, matchedItemStack);
+                }
+            }
+        };
 
-        HitResult hitResult =  player.pick(20.0D, 0.0F, false);
-        BlockPos blockpos;
+        BlockEntity blockEntity = event.getLevel().getBlockEntity(event.getPos());
 
-        if (hitResult.getType() != HitResult.Type.BLOCK)
-            return;
-        else
-            blockpos = ((BlockHitResult) hitResult).getBlockPos();
+        if (blockEntity instanceof Container container) {
+            convertContainer.accept(container);
+        }
+        if (blockEntity instanceof EnderChestBlockEntity) {
+            Player player = event.getEntity();
 
-        if(!gameMode.destroyBlock(blockpos))
-            return;
+            Container container = player.getEnderChestInventory();
 
-        // Get reference to level and cast it to ServerLevel.
-        ServerLevel serverLevel = (ServerLevel) player.level();
-
-        // Get block state that is being destroyed.
-        BlockState blockState = serverLevel.getBlockState(blockpos);
-
-        blockState.onDestroyedByPlayer(serverLevel, blockpos, player, blockState.canHarvestBlock(serverLevel, blockpos, player), false);
-        blockState.getBlock().
+            convertContainer.accept(container);
+        }
     }
     */
+    @SubscribeEvent
+    public static void onPlayerContainerOpen(final PlayerContainerEvent.Open event) {
+        AbstractContainerMenu container = event.getContainer();
+        NonNullList<Slot> slots = container.slots;
+
+        for (Slot slot : slots) {
+            ItemStack slotItem = slot.getItem();
+
+            ItemStack matchedItemStack = Converter.getMatchedConvertedItemStack(slotItem);
+
+            if (matchedItemStack != null) {
+                slot.set(matchedItemStack);
+            }
+        }
+    }
 }
